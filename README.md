@@ -46,10 +46,16 @@ To compile an example and prepare for testing:
 ```bash
 # Navigate to the directory containing the source file
 nvcc -std=c++14 -o <executable_name> <source_file.cu>
-Use code with caution.
-Markdown
-Replace <executable_name> with your desired output file name (e.g., thrust_zip_test).
-Replace <source_file.cu> with the example file you want to compile (e.g., thrust_zip.cu).
-The -std=c++14 flag ensures compatibility with the required C++ standard.
+```
+
+*   Replace `<executable_name>` with your desired output file name (e.g., `thrust_zip_test`).
+*   Replace `<source_file.cu>` with the example file you want to compile (e.g., `thrust_zip.cu`).
+*   The `-std=c++14` flag ensures compatibility with the required C++ standard.
+
 After compiling, you can run the executable directly from your terminal:
+
+```bash
 ./<executable_name>
+```
+
+Now you're ready to experiment and learn!
