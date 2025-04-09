@@ -1,6 +1,6 @@
-# CUDA Thrust Examples & Exercises: Mastering High-Performance Computing
+# CUDA Thrust Examples & Exercises: Introduction to CUDA 
 
-Dive into high-performance parallel computing with this collection of CUDA Thrust examples and hands-on exercises designed to sharpen your skills.
+Dive into high-performance parallel computing with this collection of CUDA Thrust examples and hands-on exercises designed to sharpen your CUDA skills.
 
 ## Overview
 
