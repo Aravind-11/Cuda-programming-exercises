@@ -10,11 +10,6 @@ This repository isn't just a showcase of code; it's an interactive learning envi
 
 Explore the code, then put your knowledge to the test! Each example serves as a basis for exercises designed to reinforce the concepts.
 
-### Foundational Concepts
-
-*   **thrust_zip.cu**: Learn the basics of combining multiple data streams using Thrust's zip iterators. (_Exercise: Modify the zip operation to handle different data types._)
-*   **thrust_combined.cu**: See how transform iterators work with zip iterators for efficient multi-vector operations. (_Exercise: Implement a new transformation function and apply it._)
-
 ### Advanced Performance Tuning
 
 *   **optimized_max_displacement.cu**: Study an optimized approach using iterators to compute maximum displacement between particle sets. (_Exercise: Analyze the memory access patterns._)
@@ -24,7 +19,7 @@ _(Note: Specific exercises might be detailed within the code comments or accompa
 
 ## Key Learning Objectives: Performance Optimization
 
-Through actively working with these examples and exercises, you will gain practical experience with vital CUDA optimization techniques, including:
+Through actively working with these examples and exercises, you can gain practical experience with vital CUDA optimization techniques, including:
 
 1.  **Fused Operations**: Understand how transform iterators eliminate the need for temporary memory storage.
 2.  **Memory Coalescing**: Learn to structure data and access patterns for optimal GPU memory bandwidth.
