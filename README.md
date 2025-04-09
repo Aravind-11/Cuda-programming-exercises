@@ -4,7 +4,7 @@ Dive into high-performance parallel computing with this collection of CUDA Thrus
 
 ## Overview
 
-This repository isn't just a showcase of code; it's an interactive learning environment. We provide educational CUDA samples using NVIDIA's Thrust library, focusing on practical scenarios like particle-based simulations. More importantly, you'll find opportunities to **execute the code, experiment, and test your understanding** of parallel computing patterns and crucial performance optimization techniques.
+This repository isn't just a showcase of code; it's an interactive learning environment. It provides example CUDA samples using NVIDIA's Thrust library, focusing on practical scenarios like particle-based simulations. More importantly, you'll find opportunities to **execute the code, experiment, and test your understanding** of parallel computing patterns and crucial performance optimization techniques.
 
 ## Examples & Exercises
 
