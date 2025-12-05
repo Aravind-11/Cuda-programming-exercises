@@ -1,8 +1,8 @@
-# 🚀 CUDA Thrust & High-Performance Computing Examples
+# CUDA Thrust & High-Performance Computing Examples
 
-A hands-on collection of CUDA examples and exercises focused on performance optimization, parallel algorithms, and their application to fundamental Deep Learning components.
+CUDA examples and exercises focused on performance optimization, parallel algorithms, and their application to fundamental Deep Learning components.
 
-## 🌟 Project Goals
+## Project Goals
 
 This repository serves as an **interactive learning environment** to master key parallel computing concepts:
 
@@ -12,7 +12,7 @@ This repository serves as an **interactive learning environment** to master key 
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 The project is divided into distinct learning paths:
 
@@ -24,7 +24,7 @@ The project is divided into distinct learning paths:
 
 ---
 
-## 📚 Key Exercises
+## Key Exercises
 
 | File/Area | Concept Learned | Primary Task |
 | :--- | :--- | :--- |
@@ -35,7 +35,7 @@ The project is divided into distinct learning paths:
 
 ---
 
-## ✅ Requirements
+## Requirements
 
 * **CUDA Toolkit 11.0 or higher**
 * A CUDA-capable **NVIDIA GPU**
