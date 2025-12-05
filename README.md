@@ -1,56 +1,46 @@
-# CUDA Thrust Examples & Exercises: Introduction to CUDA 
+# 🚀 CUDA Thrust & High-Performance Computing Examples
 
-Dive into high-performance parallel computing with this collection of CUDA Thrust examples and hands-on exercises designed to sharpen your CUDA skills.
+A hands-on collection of CUDA examples and exercises focused on performance optimization, parallel algorithms, and their application to fundamental Deep Learning components.
 
-## Overview
+## 🌟 Project Goals
 
-This repository isn't just a showcase of code; it's an interactive learning environment. It provides example CUDA samples using NVIDIA's Thrust library, focusing on practical scenarios like particle-based simulations. More importantly, you'll find opportunities to **execute the code, experiment, and test your understanding** of parallel computing patterns and crucial performance optimization techniques.
+This repository serves as an **interactive learning environment** to master key parallel computing concepts:
 
-## Examples & Exercises
+1.  **Thrust Proficiency:** Use NVIDIA's Thrust library for highly-optimized parallel patterns (e.g., sort, reduce, transform).
+2.  **Performance Tuning:** Understand and implement critical GPU optimization techniques like **Memory Coalescing** and **Fused Operations**. 
+3.  **Application:** Apply CUDA to **Matrix Multiplication (GEMM)** and basic **Neural Network** architectures.
 
-Explore the code, then put your knowledge to the test! Each example serves as a basis for exercises designed to reinforce the concepts.
+---
 
-### Advanced Performance Tuning
+## 📂 Repository Structure
 
-*   **optimized_max_displacement.cu**: Study an optimized approach using iterators to compute maximum displacement between particle sets. (_Exercise: Analyze the memory access patterns._)
-*   **performance_comparison.cu**: Compare naive vs. optimized methods for particle displacement calculations. (_Exercise: Benchmark the code with varying data sizes and analyze the performance difference._)
+The project is divided into distinct learning paths:
 
-_(Note: Specific exercises might be detailed within the code comments or accompanying materials.)_
+| Folder | Focus | Description |
+| :--- | :--- | :--- |
+| `examples_exercises` | **Thrust/Optimization** | Core examples demonstrating performance tuning, iterators (`zip_iterator`), and high-level Thrust algorithms for general parallel problems (e.g., particle displacement). |
+| `matmul` | **Linear Algebra/Low-Level CUDA** | Examples focused on **raw CUDA kernels** for efficient Matrix Multiplication (GEMM), a prerequisite for neural networks. |
+| `neural_nets` | **Deep Learning Fundamentals** | Implementation of a basic feed-forward network utilizing the optimized operations from `matmul` and Thrust for element-wise tasks. |
 
-## Key Learning Objectives: Performance Optimization
+---
 
-Through actively working with these examples and exercises, you can gain practical experience with vital CUDA optimization techniques, including:
+## 📚 Key Exercises
 
-1.  **Fused Operations**: Understand how transform iterators eliminate the need for temporary memory storage.
-2.  **Memory Coalescing**: Learn to structure data and access patterns for optimal GPU memory bandwidth.
-3.  **Work Reduction**: Practice minimizing redundant computations and memory transfers.
-4.  **Algorithm Selection**: Gain insight into choosing and utilizing Thrust's highly-optimized parallel algorithms effectively.
+| File/Area | Concept Learned | Primary Task |
+| :--- | :--- | :--- |
+| `optimized_max_displacement.cu` | **Fused Operations** | Analyze the memory access pattern of the zip iterator. |
+| `performance_comparison.cu` | **Benchmarking** | Benchmark naive vs. optimized code across varying data sizes. |
+| `matmul/` | **Tiled Kernels** | Implement and test a **tiled GEMM kernel** for cache reuse. |
+| `neural_nets/` | **Element-wise Transforms** | Use `thrust::transform` to implement custom **ReLU/Sigmoid** activation functions. |
 
-## Requirements
+---
 
-To compile and run the examples and complete the exercises, you'll need:
+## ✅ Requirements
 
-*   CUDA Toolkit 11.0 or higher
-*   A CUDA-capable NVIDIA GPU
-*   A C++14 compatible compiler (like `g++` or `clang++` alongside `nvcc`)
+* **CUDA Toolkit 11.0 or higher**
+* A CUDA-capable **NVIDIA GPU**
+* A **C++14 compatible compiler** (e.g., `nvcc`)
 
-## Building and Running the Exercises
+## Acknowledgments 
 
-To compile an example and prepare for testing:
-
-```bash
-# Navigate to the directory containing the source file
-nvcc -std=c++14 -o <executable_name> <source_file.cu>
-```
-
-*   Replace `<executable_name>` with your desired output file name (e.g., `thrust_zip_test`).
-*   Replace `<source_file.cu>` with the example file you want to compile (e.g., `thrust_zip.cu`).
-*   The `-std=c++14` flag ensures compatibility with the required C++ standard.
-
-After compiling, you can run the executable directly from your terminal:
-
-```bash
-./<executable_name>
-```
-
-Now you're ready to experiment and learn!
+Nvidia Developer blogs
