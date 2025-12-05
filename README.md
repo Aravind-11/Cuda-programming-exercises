@@ -6,7 +6,7 @@ CUDA examples and exercises focused on performance optimization, parallel algori
 
 This repository serves as an **interactive learning environment** to master key parallel computing concepts:
 
-1. High level CUDA concepts include threads, synchronisation, shared memory and tiling
+1. CUDA concepts: High level CUDA concepts including **threads, synchronisation, shared memory and tiling**.
 2.  **Thrust Proficiency:** Use NVIDIA's Thrust library for highly-optimized parallel patterns (e.g., sort, reduce, transform).
 3.  **Application:** Apply CUDA to **Matrix Multiplication (GEMM)** and basic **Neural Network** architectures.
 
