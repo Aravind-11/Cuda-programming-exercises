@@ -48,3 +48,6 @@ The project is divided into distinct learning paths:
 
 [CUDA programming guide
 ](https://docs.nvidia.com/cuda/cuda-programming-guide/01-introduction/introduction.html)
+
+[Fundamentals of Accelerated Computing with Modern CUDA C++
+](https://learn.nvidia.com/courses/course-detail?course_id=course-v1:DLI+C-AC-01+V2)
