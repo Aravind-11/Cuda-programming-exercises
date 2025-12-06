@@ -1,4 +1,4 @@
-# CUDA Thrust & High-Performance Computing Examples
+# CUDA programming for Dummies!
 
 CUDA examples and exercises focused on performance optimization, parallel algorithms, and their application to fundamental Deep Learning components.
 
