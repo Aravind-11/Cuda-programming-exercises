@@ -12,17 +12,6 @@ This repository serves as an **interactive learning environment** to master key 
 
 ---
 
-## Repository Structure
-
-The project is divided into distinct learning paths:
-
-| Folder | Focus | Description |
-| :--- | :--- | :--- |
-| `examples_exercises` | **Thrust/Optimization** | Core examples demonstrating performance tuning, iterators (`zip_iterator`), and high-level Thrust algorithms for general parallel problems (e.g., particle displacement). |
-| `matmul` | **Linear Algebra/Low-Level CUDA** | Examples focused on **raw CUDA kernels** for efficient Matrix Multiplication (GEMM), a prerequisite for neural networks. |
-| `neural_nets` | **Deep Learning Fundamentals** | Implementation of a basic feed-forward network utilizing the optimized operations from `matmul` and Thrust for element-wise tasks. |
-
----
 
 ## Key Exercises
 
