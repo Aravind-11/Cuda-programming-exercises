@@ -43,4 +43,5 @@ The project is divided into distinct learning paths:
 
 ## Acknowledgments 
 
-Nvidia Developer blogs
+[An even easier introduction to CUDA
+](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
