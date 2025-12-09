@@ -1,4 +1,4 @@
-# Backpropagation in Transformer Blocks: What Actually Happens (And Why Most People Don't Know)
+## Backpropagation in Transformer Blocks: What Actually Happens
 
 I spent months implementing Transformers before I really understood what was happening during backpropagation. I could write the forward pass, call `.backward()`, and watch the loss go down—but I didn't truly *get* how gradients flowed through residual connections, or why GELU behaved differently from ReLU, or what made attention's backward pass so intricate.
 
