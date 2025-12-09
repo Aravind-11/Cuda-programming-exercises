@@ -16,7 +16,7 @@ A standard Transformer encoder block looks like this:
 ```
 Input x
   ↓
-Multi-Head Self-Attention
+Attention
   ↓
 Add & Norm (Residual + LayerNorm)
   ↓
