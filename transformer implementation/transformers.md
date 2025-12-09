@@ -322,3 +322,329 @@ dy_tanh  = gelu_tanh_derivative(x)
 - The tanh approximation is widely used in Transformers for speed.  
 - Both exact and approximate forms are smooth and differentiable.  
 - Exact GELU requires computing the $\text{erf}$ function.
+
+
+---
+
+# Scaled Dot-Product Attention: Forward and Backward Pass
+
+This document explains the mathematical derivation and implementation of scaled dot-product attention, including forward pass, backward pass (backpropagation), and numerical gradient verification.
+
+---
+
+## 1. Overview
+
+Scaled dot-product attention is the core mechanism in Transformer models. Given input sequence $X$, it computes:
+
+$$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+
+Where:
+- $Q$ (Query): $X W_q$, shape $(T, d_k)$
+- $K$ (Key): $X W_k$, shape $(T, d_k)$
+- $V$ (Value): $X W_v$, shape $(T, d_k)$
+- $T$: sequence length
+- $d_k$: dimension of queries/keys/values
+
+---
+
+## 2. Forward Pass
+
+### 2.1 Step-by-Step Computation
+
+Given input $X \in \mathbb{R}^{T \times d_{\text{model}}}$ and projection matrices $W_q, W_k, W_v \in \mathbb{R}^{d_{\text{model}} \times d_k}$:
+
+1. **Project inputs**:
+
+$$Q = XW_q, \quad K = XW_k, \quad V = XW_v$$
+
+2. **Compute attention logits** (scaled dot-product):
+
+$$Z = \frac{QK^T}{\sqrt{d_k}} \in \mathbb{R}^{T \times T}$$
+
+3. **Apply softmax** (row-wise):
+
+$$A = \text{softmax}(Z) \in \mathbb{R}^{T \times T}$$
+
+where each row $A_i$ sums to 1.
+
+4. **Compute output**:
+
+$$O = AV \in \mathbb{R}^{T \times d_k}$$
+
+### 2.2 Loss Function
+
+For supervised learning with target $Y \in \mathbb{R}^{T \times d_k}$:
+
+$$L = \frac{1}{2}\sum_{i,j}(O_{ij} - Y_{ij})^2$$
+
+---
+
+## 3. Backward Pass (Backpropagation)
+
+Working backward through the computational graph:
+
+### 3.1 Gradient w.r.t. Output
+
+$$\frac{\partial L}{\partial O} = O - Y$$
+
+### 3.2 Gradient through $O = AV$
+
+Using the product rule:
+
+$$\frac{\partial L}{\partial A} = \frac{\partial L}{\partial O} V^T \in \mathbb{R}^{T \times T}$$
+
+$$\frac{\partial L}{\partial V} = A^T \frac{\partial L}{\partial O} \in \mathbb{R}^{T \times d_k}$$
+
+### 3.3 Gradient through Softmax
+
+For row-wise softmax, the Jacobian of row $i$ is:
+
+$$J_i = \text{diag}(A_i) - A_i A_i^T$$
+
+Therefore:
+
+$$\frac{\partial L}{\partial Z_i} = A_i \odot \left(\frac{\partial L}{\partial A_i} - A_i \cdot \frac{\partial L}{\partial A_i}\right)$$
+
+where $\odot$ is element-wise multiplication and $\cdot$ is dot product.
+
+In vectorized form:
+
+$$\frac{\partial L}{\partial Z} = \frac{\partial L}{\partial A} - A \odot \left(\sum_j \frac{\partial L}{\partial A} \odot A\right)$$
+
+### 3.4 Gradient through Scaled Dot-Product $Z = \frac{QK^T}{\sqrt{d_k}}$
+
+$$\frac{\partial L}{\partial Q} = \frac{1}{\sqrt{d_k}} \frac{\partial L}{\partial Z} K \in \mathbb{R}^{T \times d_k}$$
+
+$$\frac{\partial L}{\partial K} = \frac{1}{\sqrt{d_k}} \left(\frac{\partial L}{\partial Z}\right)^T Q \in \mathbb{R}^{T \times d_k}$$
+
+### 3.5 Gradient w.r.t. Projection Weights
+
+Since $Q = XW_q$, $K = XW_k$, $V = XW_v$:
+
+$$\frac{\partial L}{\partial W_q} = X^T \frac{\partial L}{\partial Q} \in \mathbb{R}^{d_{\text{model}} \times d_k}$$
+
+$$\frac{\partial L}{\partial W_k} = X^T \frac{\partial L}{\partial K} \in \mathbb{R}^{d_{\text{model}} \times d_k}$$
+
+$$\frac{\partial L}{\partial W_v} = X^T \frac{\partial L}{\partial V} \in \mathbb{R}^{d_{\text{model}} \times d_k}$$
+
+### 3.6 Gradient w.r.t. Input $X$
+
+The gradient flows through three paths (Q, K, V):
+
+$$\frac{\partial L}{\partial X} = \frac{\partial L}{\partial Q}W_q^T + \frac{\partial L}{\partial K}W_k^T + \frac{\partial L}{\partial V}W_v^T$$
+
+---
+
+## 4. Implementation
+
+### 4.1 NumPy Implementation
+```python
+#!/usr/bin/env python3
+"""
+Scaled Dot-Product Attention (NumPy)
+Single-head, single-batch, sequence length T, model dim d_model, projection dim d_k.
+Forward + manual backward + numeric gradient checks.
+"""
+import numpy as np
+
+np.set_printoptions(precision=6, suppress=True)
+rng = np.random.default_rng(2)
+
+# -----------------------
+# Config / random setup
+# -----------------------
+T = 4            # sequence length (tokens)
+d_model = 6      # input/model dimension
+d_k = 3          # key/query/value dim (per head)
+
+# Random small inputs and target
+X = rng.normal(scale=0.5, size=(T, d_model))       # (T, d_model)
+Wq = rng.normal(scale=0.1, size=(d_model, d_k))    # (d_model, d_k)
+Wk = rng.normal(scale=0.1, size=(d_model, d_k))
+Wv = rng.normal(scale=0.1, size=(d_model, d_k))
+target = rng.normal(scale=0.5, size=(T, d_k))      # supervised target for O
+
+sqrt_dk = np.sqrt(d_k)
+
+# -----------------------
+# Utilities
+# -----------------------
+def softmax_rows(z):
+    """Row-wise stable softmax for 2D array z with shape (T, T)."""
+    z_max = np.max(z, axis=1, keepdims=True)
+    e = np.exp(z - z_max)
+    return e / np.sum(e, axis=1, keepdims=True)
+
+# -----------------------
+# Forward Pass
+# -----------------------
+def forward(X, Wq, Wk, Wv, target):
+    """
+    Computes attention output and loss.
+    
+    Args:
+        X: Input sequence (T, d_model)
+        Wq, Wk, Wv: Projection matrices (d_model, d_k)
+        target: Supervised target (T, d_k)
+    
+    Returns:
+        loss: Scalar MSE loss
+        cache: Tuple of intermediate values for backprop
+    """
+    Q = X @ Wq               # (T, d_k)
+    K = X @ Wk               # (T, d_k)
+    V = X @ Wv               # (T, d_k)
+    Z = (Q @ K.T) / sqrt_dk  # (T, T)  scaled dot-product logits
+    A = softmax_rows(Z)      # (T, T)  attention weights (rows sum to 1)
+    O = A @ V                # (T, d_k) output
+    
+    loss = 0.5 * np.sum((O - target)**2)
+    cache = (X, Q, K, V, Z, A, O)
+    return loss, cache
+
+# -----------------------
+# Manual Backward Pass
+# -----------------------
+def backward(cache, Wq, Wk, Wv, target):
+    """
+    Manual backpropagation for scaled dot-product attention.
+    
+    Key insight for softmax backprop:
+    For row-wise softmax, the Jacobian for row i is:
+        J_i = diag(A_i) - A_i ⊗ A_i^T
+    Therefore:
+        dZ_i = A_i ⊙ (dA_i - (A_i · dA_i))
+    where · is dot product, ⊙ is element-wise product
+    
+    Returns:
+        dict: Gradients for all parameters and intermediates
+    """
+    X, Q, K, V, Z, A, O = cache
+    
+    # Gradient w.r.t. output
+    dO = O - target                      # (T, d_k)
+
+    # Backprop through O = A @ V
+    dA = dO @ V.T                        # (T, T)
+    dV = A.T @ dO                        # (T, d_k)
+
+    # Backprop through softmax (row-wise)
+    # For each row i: dZ_i = A_i ⊙ (dA_i - (A_i · dA_i))
+    AdotdA = np.sum(A * dA, axis=1, keepdims=True)   # (T, 1)
+    dZ = dA - A * AdotdA                             # (T, T)
+
+    # Backprop through Z = (Q @ K^T) / sqrt(d_k)
+    dQ = (dZ @ K) / sqrt_dk            # (T, d_k)
+    dK = (dZ.T @ Q) / sqrt_dk          # (T, d_k)
+
+    # Gradient w.r.t. projection weights
+    dWq = X.T @ dQ                     # (d_model, d_k)
+    dWk = X.T @ dK                     # (d_model, d_k)
+    dWv = X.T @ dV                     # (d_model, d_k)
+
+    # Gradient w.r.t. input X (sum of three paths: Q, K, V)
+    dX = dQ @ Wq.T + dK @ Wk.T + dV @ Wv.T   # (T, d_model)
+
+    return {
+        'dWq': dWq, 'dWk': dWk, 'dWv': dWv,
+        'dX': dX, 'dZ': dZ, 'dA': dA, 'dO': dO,
+        'dQ': dQ, 'dK': dK, 'dV': dV
+    }
+
+# -----------------------
+# Numeric Gradient Check
+# -----------------------
+def numeric_grad_param(param_name, eps=1e-6):
+    """
+    Finite-difference gradient check for any parameter.
+    
+    Args:
+        param_name: One of 'Wq', 'Wk', 'Wv', 'X'
+        eps: Perturbation size for finite difference
+    
+    Returns:
+        Numerical gradient with same shape as parameter
+    """
+    if param_name == 'Wq':
+        param = Wq
+    elif param_name == 'Wk':
+        param = Wk
+    elif param_name == 'Wv':
+        param = Wv
+    elif param_name == 'X':
+        param = X
+    else:
+        raise ValueError("unknown param")
+
+    grad = np.zeros_like(param)
+    it = np.nditer(param, flags=['multi_index'], op_flags=['readwrite'])
+    
+    while not it.finished:
+        idx = it.multi_index
+        orig = param[idx]
+
+        if param_name == 'Wq':
+            Wq_p = Wq.copy(); Wq_p[idx] = orig + eps
+            Wq_m = Wq.copy(); Wq_m[idx] = orig - eps
+            l_plus, _ = forward(X, Wq_p, Wk, Wv, target)
+            l_minus, _ = forward(X, Wq_m, Wk, Wv, target)
+        elif param_name == 'Wk':
+            Wk_p = Wk.copy(); Wk_p[idx] = orig + eps
+            Wk_m = Wk.copy(); Wk_m[idx] = orig - eps
+            l_plus, _ = forward(X, Wq, Wk_p, Wv, target)
+            l_minus, _ = forward(X, Wq, Wk_m, Wv, target)
+        elif param_name == 'Wv':
+            Wv_p = Wv.copy(); Wv_p[idx] = orig + eps
+            Wv_m = Wv.copy(); Wv_m[idx] = orig - eps
+            l_plus, _ = forward(X, Wq, Wk, Wv_p, target)
+            l_minus, _ = forward(X, Wq, Wk, Wv_m, target)
+        elif param_name == 'X':
+            X_p = X.copy(); X_p[idx] = orig + eps
+            X_m = X.copy(); X_m[idx] = orig - eps
+            l_plus, _ = forward(X_p, Wq, Wk, Wv, target)
+            l_minus, _ = forward(X_m, Wq, Wk, Wv, target)
+
+        grad[idx] = (l_plus - l_minus) / (2 * eps)
+        it.iternext()
+    
+    return grad
+
+# -----------------------
+# Run Tests
+# -----------------------
+if __name__ == "__main__":
+    # Forward pass
+    loss, cache = forward(X, Wq, Wk, Wv, target)
+    
+    # Backward pass
+    grads = backward(cache, Wq, Wk, Wv, target)
+
+    print("Loss:", loss)
+    print("Shapes: X", X.shape, "Wq", Wq.shape, "Wk", Wk.shape, "Wv", Wv.shape)
+    print("Output O shape:", cache[6].shape)
+    
+    print("\nManual gradient norms:")
+    print("||dWq|| {:.6e}  ||dWk|| {:.6e}  ||dWv|| {:.6e}".format(
+        np.linalg.norm(grads['dWq']), 
+        np.linalg.norm(grads['dWk']), 
+        np.linalg.norm(grads['dWv'])))
+    print("||dX|| {:.6e}".format(np.linalg.norm(grads['dX'])))
+
+    # Numeric gradient checks
+    num_dWq = numeric_grad_param('Wq')
+    num_dWk = numeric_grad_param('Wk')
+    num_dWv = numeric_grad_param('Wv')
+    num_dX  = numeric_grad_param('X')
+
+    print("\nNumeric gradient check (max abs diff):")
+    print("dWq diff:", np.max(np.abs(num_dWq - grads['dWq'])))
+    print("dWk diff:", np.max(np.abs(num_dWk - grads['dWk'])))
+    print("dWv diff:", np.max(np.abs(num_dWv - grads['dWv'])))
+    print("dX  diff:", np.max(np.abs(num_dX  - grads['dX'])))
+
+    print("\nSample manual dWq[:2,:2]:\n", grads['dWq'][:2,:2])
+    print("Sample numeric dWq[:2,:2]:\n", num_dWq[:2,:2])
+```
+
+---
+
