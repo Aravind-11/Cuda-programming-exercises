@@ -1,10 +1,39 @@
-# Backpropagation Through Residual Layers
+# Backpropagation in Transformer Blocks: What Actually Happens (And Why Most People Don't Know)
+
+I spent months implementing Transformers before I really understood what was happening during backpropagation. I could write the forward pass, call `.backward()`, and watch the loss go down—but I didn't truly *get* how gradients flowed through residual connections, or why GELU behaved differently from ReLU, or what made attention's backward pass so intricate.
+
+It wasn't until I sat down and derived everything from scratch—pen, paper, and way too much coffee—that things clicked. And I realized: most people using Transformers every day have never seen this math. They trust PyTorch to handle it, which is fine for building models, but it leaves a gap. You can't debug what you don't understand. You can't design better architectures if you don't know why the current ones work.
+
+So I'm writing this for anyone who's ever wondered what's really going on under the hood. We're going to break down a Transformer block into its core components—residual connections, GELU activations, and scaled dot-product attention—and derive the backward pass for each one. No hand-waving, no "the library handles it." Just the math, step by step.
+
+If you're the kind of person who feels uneasy using tools you don't fully understand, this is for you.
+
+---
+
+## What We're Actually Computing
+
+A standard Transformer encoder block looks like this:
+```
+Input x
+  ↓
+Multi-Head Self-Attention
+  ↓
+Add & Norm (Residual + LayerNorm)
+  ↓
+Feed-Forward Network (Linear → GELU → Linear)
+  ↓
+Add & Norm (Residual + LayerNorm)
+  ↓
+Output
+```
+
+## Backpropagation Through Residual Layers
 
 This document provides a clear, technically precise explanation of how backpropagation works in a residual layer, focusing on the math and intuition that matter in practice.
 
 ---
 
-## 1. What a Residual Layer Actually Computes
+### 1. What a Residual Layer Actually Computes
 
 A standard residual block computes:
 
@@ -18,7 +47,7 @@ This additive structure is the key to why backprop behaves differently (and more
 
 ---
 
-## 2. Backprop Through a Residual Block
+### 2. Backprop Through a Residual Block
 
 Assume you know the upstream gradient
 
@@ -32,7 +61,7 @@ $$\frac{\partial L}{\partial x} \quad \text{and} \quad \frac{\partial L}{\partia
 
 ---
 
-### 2.1 Gradient w.r.t. input $x$
+#### 2.1 Gradient w.r.t. input $x$
 
 Since
 
@@ -62,7 +91,7 @@ This is the reason ResNets avoid vanishing gradients: the identity connection en
 
 ---
 
-### 2.2 Gradient w.r.t. the residual block weights $W$
+#### 2.2 Gradient w.r.t. the residual block weights $W$
 
 Normal chain rule:
 
@@ -72,7 +101,7 @@ Nothing special here: only the residual branch has learnable weights.
 
 ---
 
-## 3. Why Residual Blocks Make Deep Nets Trainable
+### 3. Why Residual Blocks Make Deep Nets Trainable
 
 Because one part of the gradient bypasses the nonlinear transformation entirely:
 
@@ -84,7 +113,7 @@ This prevents gradients from collapsing to zero through very deep models.
 
 ---
 
-## 4. Key Takeaways
+### 4. Key Takeaways
 
 - **Skip connection provides gradient highway**: The term $\frac{\partial L}{\partial y}$ flows directly back without multiplication by layer weights
 - **Residual path adds refinement**: The term $\frac{\partial L}{\partial y} \cdot \frac{\partial F}{\partial x}$ provides additional gradient signal through the learned transformation
@@ -179,12 +208,12 @@ print("dx:\n", grads_manual['x'])
 ---
 
 
-# Gaussian Error Linear Unit (GELU)
+## Gaussian Error Linear Unit (GELU)
 This explains the forward and backward passes for both the exact and approximate GELU activations, using GitHub-compatible LaTeX.
 
 ---
 
-## 1. Overview
+### 1. Overview
 The GELU activation is defined as:
 
 $$\text{GELU}(x) = x \, \Phi(x)$$
@@ -195,7 +224,7 @@ Where:
 
 ---
 
-## 2. Exact GELU
+### 2. Exact GELU
 
 ### 2.1 Forward Pass
 Exact GELU:
@@ -212,7 +241,7 @@ $$\text{GELU}(x) = \frac{x}{2}\left(1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right
 
 ---
 
-### 2.2 Backward Pass (Exact Derivative)
+#### 2.2 Backward Pass (Exact Derivative)
 Given:
 
 $$y = x \, \Phi(x)$$
@@ -231,7 +260,7 @@ $$\text{GELU}'(x) = \Phi(x) + x \phi(x)$$
 
 ---
 
-## 3. Approximate GELU (Tanh Approximation)
+### 3. Approximate GELU (Tanh Approximation)
 A commonly used approximation:
 
 $$\text{GELU}(x) \approx 0.5x \left(1 + \tanh\left(\sqrt{\frac{2}{\pi}}(x + 0.044715 x^3)\right)\right)$$
@@ -242,7 +271,7 @@ $$t = \sqrt{\frac{2}{\pi}}(x + 0.044715 x^3)$$
 
 ---
 
-### 3.1 Backward Pass (Approx Derivative)
+#### 3.1 Backward Pass (Approx Derivative)
 Derivative of tanh:
 
 $$\frac{d}{dx}\tanh(t) = (1 - \tanh^2(t)) \cdot t'$$
@@ -318,7 +347,7 @@ dy_tanh  = gelu_tanh_derivative(x)
 
 ---
 
-## 5. Notes
+### 5. Notes
 - The tanh approximation is widely used in Transformers for speed.  
 - Both exact and approximate forms are smooth and differentiable.  
 - Exact GELU requires computing the $\text{erf}$ function.
@@ -326,13 +355,13 @@ dy_tanh  = gelu_tanh_derivative(x)
 
 ---
 
-# Scaled Dot-Product Attention: Forward and Backward Pass
+## Scaled Dot-Product Attention: Forward and Backward Pass
 
 This document explains the mathematical derivation and implementation of scaled dot-product attention, including forward pass, backward pass (backpropagation), and numerical gradient verification.
 
 ---
 
-## 1. Overview
+### 1. Overview
 
 Scaled dot-product attention is the core mechanism in Transformer models. Given input sequence $X$, it computes:
 
@@ -347,9 +376,9 @@ Where:
 
 ---
 
-## 2. Forward Pass
+### 2. Forward Pass
 
-### 2.1 Step-by-Step Computation
+#### 2.1 Step-by-Step Computation
 
 Given input $X \in \mathbb{R}^{T \times d_{\text{model}}}$ and projection matrices $W_q, W_k, W_v \in \mathbb{R}^{d_{\text{model}} \times d_k}$:
 
@@ -371,7 +400,7 @@ where each row $A_i$ sums to 1.
 
 $$O = AV \in \mathbb{R}^{T \times d_k}$$
 
-### 2.2 Loss Function
+#### 2.2 Loss Function
 
 For supervised learning with target $Y \in \mathbb{R}^{T \times d_k}$:
 
@@ -379,15 +408,15 @@ $$L = \frac{1}{2}\sum_{i,j}(O_{ij} - Y_{ij})^2$$
 
 ---
 
-## 3. Backward Pass (Backpropagation)
+### 3. Backward Pass (Backpropagation)
 
 Working backward through the computational graph:
 
-### 3.1 Gradient w.r.t. Output
+#### 3.1 Gradient w.r.t. Output
 
 $$\frac{\partial L}{\partial O} = O - Y$$
 
-### 3.2 Gradient through $O = AV$
+#### 3.2 Gradient through $O = AV$
 
 Using the product rule:
 
@@ -395,7 +424,7 @@ $$\frac{\partial L}{\partial A} = \frac{\partial L}{\partial O} V^T \in \mathbb{
 
 $$\frac{\partial L}{\partial V} = A^T \frac{\partial L}{\partial O} \in \mathbb{R}^{T \times d_k}$$
 
-### 3.3 Gradient through Softmax
+#### 3.3 Gradient through Softmax
 
 For row-wise softmax, the Jacobian of row $i$ is:
 
@@ -411,13 +440,13 @@ In vectorized form:
 
 $$\frac{\partial L}{\partial Z} = \frac{\partial L}{\partial A} - A \odot \left(\sum_j \frac{\partial L}{\partial A} \odot A\right)$$
 
-### 3.4 Gradient through Scaled Dot-Product $Z = \frac{QK^T}{\sqrt{d_k}}$
+#### 3.4 Gradient through Scaled Dot-Product $Z = \frac{QK^T}{\sqrt{d_k}}$
 
 $$\frac{\partial L}{\partial Q} = \frac{1}{\sqrt{d_k}} \frac{\partial L}{\partial Z} K \in \mathbb{R}^{T \times d_k}$$
 
 $$\frac{\partial L}{\partial K} = \frac{1}{\sqrt{d_k}} \left(\frac{\partial L}{\partial Z}\right)^T Q \in \mathbb{R}^{T \times d_k}$$
 
-### 3.5 Gradient w.r.t. Projection Weights
+#### 3.5 Gradient w.r.t. Projection Weights
 
 Since $Q = XW_q$, $K = XW_k$, $V = XW_v$:
 
@@ -427,7 +456,7 @@ $$\frac{\partial L}{\partial W_k} = X^T \frac{\partial L}{\partial K} \in \mathb
 
 $$\frac{\partial L}{\partial W_v} = X^T \frac{\partial L}{\partial V} \in \mathbb{R}^{d_{\text{model}} \times d_k}$$
 
-### 3.6 Gradient w.r.t. Input $X$
+#### 3.6 Gradient w.r.t. Input $X$
 
 The gradient flows through three paths (Q, K, V):
 
