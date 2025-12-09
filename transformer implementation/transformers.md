@@ -433,11 +433,7 @@ The gradient flows through three paths (Q, K, V):
 
 $$\frac{\partial L}{\partial X} = \frac{\partial L}{\partial Q}W_q^T + \frac{\partial L}{\partial K}W_k^T + \frac{\partial L}{\partial V}W_v^T$$
 
----
 
-## 4. Implementation
-
-### 4.1 NumPy Implementation
 ```python
 #!/usr/bin/env python3
 """
