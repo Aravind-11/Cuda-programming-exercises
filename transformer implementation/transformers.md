@@ -258,6 +258,7 @@ $$\text{GELU}'_{\text{approx}}(x) = 0.5(1 + \tanh(t)) + 0.5x(1 - \tanh^2(t)) \, 
 ---
 
 ```python
+
 import numpy as np
 from math import erf
 
@@ -295,6 +296,22 @@ def gelu_tanh_derivative(x):
     tanh_t = np.tanh(t)
     dt_dx = np.sqrt(2/np.pi) * (1 + 3 * 0.044715 * x**2)
     return 0.5 * (1 + tanh_t) + 0.5 * x * (1 - tanh_t**2) * dt_dx
+
+
+
+# -----------------------------
+# Test inputs
+# -----------------------------
+x = np.array([-3.0, -1.0, -0.1, 0.0, 0.1, 1.0, 3.0])
+
+# Forward
+y_exact = gelu_exact(x)
+y_tanh  = gelu_tanh(x)
+
+# Backward (analytic)
+dy_exact = gelu_exact_derivative(x)
+dy_tanh  = gelu_tanh_derivative(x)
+
 
 
 ```
