@@ -101,6 +101,145 @@ This prevents gradients from collapsing to zero through very deep models.
 | Skip Path | $y_{\text{skip}} = x$ | $\frac{\partial L}{\partial x}_{\text{skip}} = \frac{\partial L}{\partial y}$ |
 | Residual Path | $y_{\text{res}} = F(x, W)$ | $\frac{\partial L}{\partial x}_{\text{res}} = \frac{\partial L}{\partial y} \cdot \frac{\partial F}{\partial x}$ |
 | Weight Gradient | — | $\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y} \cdot \frac{\partial F}{\partial W}$ |
+
+
+```
+# Numpy example: forward + manual backward pass for a simple residual block
+# Model:
+#   z1 = W1 @ x + b1
+#   a1 = relu(z1)
+#   F = W2 @ a1 + b2
+#   y = x + F
+# Loss:  L = 0.5 * ||y - target||^2
+#
+# Computes analytic gradients and checks via finite differences.
+
+import numpy as np
+
+np.random.seed(0)
+
+# dimensions
+in_dim = 3
+hid = 4
+
+# random small inputs / params
+x = np.random.randn(in_dim)            # input (vector)
+target = np.random.randn(in_dim)       # target (vector)
+W1 = np.random.randn(hid, in_dim) * 0.1
+b1 = np.random.randn(hid) * 0.1
+W2 = np.random.randn(in_dim, hid) * 0.1
+b2 = np.random.randn(in_dim) * 0.1
+
+def relu(z):
+    return np.maximum(0, z)
+
+def forward(x, W1, b1, W2, b2, target):
+    z1 = W1.dot(x) + b1         # (hid,)
+    a1 = relu(z1)               # (hid,)
+    F = W2.dot(a1) + b2         # (in_dim,)
+    y = x + F                   # (in_dim,)
+    loss = 0.5 * np.sum((y - target)**2)
+    cache = (x, z1, a1, F, y)
+    return loss, cache
+
+def manual_backward(cache, W1, W2, target):
+    x, z1, a1, F, y = cache
+    # dL/dy
+    dy = y - target             # (in_dim,)
+    # y = x + F -> dF = dy, dx from skip = dy
+    dF = dy.copy()              # gradient flowing through residual branch
+    dx_skip = dy.copy()         # gradient from identity skip connection
+
+    # gradients for W2, b2 from F = W2 @ a1 + b2
+    dW2 = np.outer(dF, a1)     # (in_dim, hid)
+    db2 = dF.copy()            # (in_dim,)
+
+    # backprop into a1
+    da1 = W2.T.dot(dF)         # (hid,)
+    dz1 = da1 * (z1 > 0)       # relu backward
+
+    # gradients for W1, b1 from z1 = W1 @ x + b1
+    dW1 = np.outer(dz1, x)     # (hid, in_dim)
+    db1 = dz1.copy()           # (hid,)
+
+    # gradient into x from residual path
+    dx_res = W1.T.dot(dz1)     # (in_dim,)
+
+    # total dx = skip + residual path
+    dx = dx_skip + dx_res      # (in_dim,)
+
+    return {'W1': dW1, 'b1': db1, 'W2': dW2, 'b2': db2, 'x': dx, 'y': dy}
+
+# Forward pass
+loss, cache = forward(x, W1, b1, W2, b2, target)
+grads_manual = manual_backward(cache, W1, W2, target)
+
+print("Loss:", loss)
+print("\nManual gradients:")
+print("dW1:\n", grads_manual['W1'])
+print("db1:\n", grads_manual['b1'])
+print("dW2:\n", grads_manual['W2'])
+print("db2:\n", grads_manual['b2'])
+print("dx:\n", grads_manual['x'])
+
+# Numerical gradients (finite differences) to verify
+def numeric_grad_safe(param_name, arr, eps=1e-6):
+    grad = np.zeros_like(arr)
+    it = np.nditer(arr, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        idx = it.multi_index
+        if param_name == 'W1':
+            W1_plus = W1.copy(); W1_plus[idx] += eps
+            W1_minus = W1.copy(); W1_minus[idx] -= eps
+            loss_plus, _ = forward(x, W1_plus, b1, W2, b2, target)
+            loss_minus, _ = forward(x, W1_minus, b1, W2, b2, target)
+        elif param_name == 'b1':
+            b1_plus = b1.copy(); b1_plus[idx] += eps
+            b1_minus = b1.copy(); b1_minus[idx] -= eps
+            loss_plus, _ = forward(x, W1, b1_plus, W2, b2, target)
+            loss_minus, _ = forward(x, W1, b1_minus, W2, b2, target)
+        elif param_name == 'W2':
+            W2_plus = W2.copy(); W2_plus[idx] += eps
+            W2_minus = W2.copy(); W2_minus[idx] -= eps
+            loss_plus, _ = forward(x, W1, b1, W2_plus, b2, target)
+            loss_minus, _ = forward(x, W1, b1, W2_minus, b2, target)
+        elif param_name == 'b2':
+            b2_plus = b2.copy(); b2_plus[idx] += eps
+            b2_minus = b2.copy(); b2_minus[idx] -= eps
+            loss_plus, _ = forward(x, W1, b1, W2, b2_plus, target)
+            loss_minus, _ = forward(x, W1, b1, W2, b2_minus, target)
+        elif param_name == 'x':
+            x_plus = x.copy(); x_plus[idx] += eps
+            x_minus = x.copy(); x_minus[idx] -= eps
+            loss_plus, _ = forward(x_plus, W1, b1, W2, b2, target)
+            loss_minus, _ = forward(x_minus, W1, b1, W2, b2, target)
+        grad[idx] = (loss_plus - loss_minus) / (2 * eps)
+        it.iternext()
+    return grad
+
+num_dW1 = numeric_grad_safe('W1', W1)
+num_db1 = numeric_grad_safe('b1', b1)
+num_dW2 = numeric_grad_safe('W2', W2)
+num_db2 = numeric_grad_safe('b2', b2)
+num_dx  = numeric_grad_safe('x', x)
+
+print("\nNumerical gradients (max abs diff vs manual):")
+print("dW1 diff:", np.max(np.abs(num_dW1 - grads_manual['W1'])))
+print("db1 diff:", np.max(np.abs(num_db1 - grads_manual['b1'])))
+print("dW2 diff:", np.max(np.abs(num_dW2 - grads_manual['W2'])))
+print("db2 diff:", np.max(np.abs(num_db2 - grads_manual['b2'])))
+print("dx  diff:", np.max(np.abs(num_dx  - grads_manual['x'])))
+
+# example inspection
+print("\nExample manual vs numeric for dW2:")
+print("manual dW2:\n", grads_manual['W2'])
+print("numeric dW2:\n", num_dW2)
+
+```
+
+---
+
+
 # Gaussian Error Linear Unit (GELU)
 This explains the forward and backward passes for both the exact and approximate GELU activations, using GitHub-compatible LaTeX.
 
