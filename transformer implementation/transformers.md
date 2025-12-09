@@ -32,7 +32,7 @@ Lets go through each layer one by one.
 
 ## Backpropagation Through Residual Layers
 
-#### Forward pass
+### 1. Forward pass
 
 A standard residual block computes:
 
@@ -45,7 +45,7 @@ $$y = x + F(x, W)$$
 This additive structure is the key to why backprop behaves differently (and more stable) here.
 
 
-#### 2. Backprop Through a Residual Block
+### 2. Backprop Through a Residual Block
 
 Assume you know the upstream gradient
 
