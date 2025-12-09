@@ -173,58 +173,6 @@ print("dW2:\n", grads_manual['W2'])
 print("db2:\n", grads_manual['b2'])
 print("dx:\n", grads_manual['x'])
 
-# Numerical gradients (finite differences) to verify
-def numeric_grad_safe(param_name, arr, eps=1e-6):
-    grad = np.zeros_like(arr)
-    it = np.nditer(arr, flags=['multi_index'], op_flags=['readwrite'])
-    while not it.finished:
-        idx = it.multi_index
-        if param_name == 'W1':
-            W1_plus = W1.copy(); W1_plus[idx] += eps
-            W1_minus = W1.copy(); W1_minus[idx] -= eps
-            loss_plus, _ = forward(x, W1_plus, b1, W2, b2, target)
-            loss_minus, _ = forward(x, W1_minus, b1, W2, b2, target)
-        elif param_name == 'b1':
-            b1_plus = b1.copy(); b1_plus[idx] += eps
-            b1_minus = b1.copy(); b1_minus[idx] -= eps
-            loss_plus, _ = forward(x, W1, b1_plus, W2, b2, target)
-            loss_minus, _ = forward(x, W1, b1_minus, W2, b2, target)
-        elif param_name == 'W2':
-            W2_plus = W2.copy(); W2_plus[idx] += eps
-            W2_minus = W2.copy(); W2_minus[idx] -= eps
-            loss_plus, _ = forward(x, W1, b1, W2_plus, b2, target)
-            loss_minus, _ = forward(x, W1, b1, W2_minus, b2, target)
-        elif param_name == 'b2':
-            b2_plus = b2.copy(); b2_plus[idx] += eps
-            b2_minus = b2.copy(); b2_minus[idx] -= eps
-            loss_plus, _ = forward(x, W1, b1, W2, b2_plus, target)
-            loss_minus, _ = forward(x, W1, b1, W2, b2_minus, target)
-        elif param_name == 'x':
-            x_plus = x.copy(); x_plus[idx] += eps
-            x_minus = x.copy(); x_minus[idx] -= eps
-            loss_plus, _ = forward(x_plus, W1, b1, W2, b2, target)
-            loss_minus, _ = forward(x_minus, W1, b1, W2, b2, target)
-        grad[idx] = (loss_plus - loss_minus) / (2 * eps)
-        it.iternext()
-    return grad
-
-num_dW1 = numeric_grad_safe('W1', W1)
-num_db1 = numeric_grad_safe('b1', b1)
-num_dW2 = numeric_grad_safe('W2', W2)
-num_db2 = numeric_grad_safe('b2', b2)
-num_dx  = numeric_grad_safe('x', x)
-
-print("\nNumerical gradients (max abs diff vs manual):")
-print("dW1 diff:", np.max(np.abs(num_dW1 - grads_manual['W1'])))
-print("db1 diff:", np.max(np.abs(num_db1 - grads_manual['b1'])))
-print("dW2 diff:", np.max(np.abs(num_dW2 - grads_manual['W2'])))
-print("db2 diff:", np.max(np.abs(num_db2 - grads_manual['b2'])))
-print("dx  diff:", np.max(np.abs(num_dx  - grads_manual['x'])))
-
-# example inspection
-print("\nExample manual vs numeric for dW2:")
-print("manual dW2:\n", grads_manual['W2'])
-print("numeric dW2:\n", num_dW2)
 
 ```
 
