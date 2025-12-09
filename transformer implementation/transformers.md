@@ -27,6 +27,8 @@ Add & Norm (Residual + LayerNorm)
 Output
 ```
 
+Lets go through each layer one by one. 
+
 ## Backpropagation Through Residual Layers
 
 This document provides a clear, technically precise explanation of how backpropagation works in a residual layer, focusing on the math and intuition that matter in practice.
