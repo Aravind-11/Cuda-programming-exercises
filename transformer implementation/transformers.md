@@ -121,7 +121,7 @@ This prevents gradients from collapsing to zero through very deep models.
 #   y = x + F
 # Loss:  L = 0.5 * ||y - target||^2
 #
-# Computes analytic gradients and checks via finite differences.
+# Computes gradients and checks via finite differences.
 
 import numpy as np
 
@@ -322,7 +322,7 @@ x = np.array([-3.0, -1.0, -0.1, 0.0, 0.1, 1.0, 3.0])
 y_exact = gelu_exact(x)
 y_tanh  = gelu_tanh(x)
 
-# Backward (analytic)
+# Backward 
 dy_exact = gelu_exact_derivative(x)
 dy_tanh  = gelu_tanh_derivative(x)
 
