@@ -32,6 +32,8 @@ This repository serves as an **interactive learning environment** to master key 
 
 ## Acknowledgments 
 
+[Lei Mao's Blogs](https://leimao.github.io/article/)
+
 [An even easier introduction to CUDA
 ](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
 
