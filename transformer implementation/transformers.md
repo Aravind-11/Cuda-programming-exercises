@@ -329,8 +329,6 @@ dy_tanh  = gelu_tanh_derivative(x)
 
 ## Scaled Dot-Product Attention: Forward and Backward Pass
 
-This document explains the mathematical derivation and implementation of scaled dot-product attention, including forward pass, backward pass (backpropagation), and numerical gradient verification.
-
 
 ### 1. Overview
 
