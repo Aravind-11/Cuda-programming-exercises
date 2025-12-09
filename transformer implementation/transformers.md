@@ -641,3 +641,6 @@ if __name__ == "__main__":
 ```
 
 
+### Continuation 
+
+Find the attached jupyter notebook in the previous page where I have implemented a full transformer block in numpy and in cuda. The cuda code is implemented using basic functions in c++ and cuda , hence the code is painfully long. Please have some patience to go through the entire code to be able to understand and implement it on your own. Happy Coding!
