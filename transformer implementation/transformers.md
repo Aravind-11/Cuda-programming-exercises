@@ -257,12 +257,47 @@ $$\text{GELU}'_{\text{approx}}(x) = 0.5(1 + \tanh(t)) + 0.5x(1 - \tanh^2(t)) \, 
 
 ---
 
-## 4. Summary Table
+```python
+import numpy as np
+from math import erf
 
-| Version | Forward | Backward |
-|---------|---------|----------|
-| Exact GELU | $\text{GELU}(x) = x\Phi(x)$ | $\text{GELU}'(x) = \Phi(x) + x\phi(x)$ |
-| Approx GELU | $0.5x(1+\tanh(t))$ | $0.5(1+\tanh(t)) + 0.5x(1-\tanh^2(t))t'$ |
+np.set_printoptions(precision=6, suppress=True)
+
+# -----------------------------
+# Standard Normal PDF & CDF
+# -----------------------------
+def phi(x):
+    return np.exp(-0.5 * x**2) / np.sqrt(2 * np.pi)
+
+def Phi(x):
+    # Vectorize math.erf for array input
+    return 0.5 * (1 + np.vectorize(erf)(x / np.sqrt(2)))
+
+# -----------------------------
+# EXACT GELU
+# -----------------------------
+def gelu_exact(x):
+    return x * Phi(x)
+
+def gelu_exact_derivative(x):
+    # GELU'(x) = Φ(x) + x * φ(x)
+    return Phi(x) + x * phi(x)
+
+# -----------------------------
+# TANH APPROX GELU
+# -----------------------------
+def gelu_tanh(x):
+    t = np.sqrt(2/np.pi) * (x + 0.044715 * x**3)
+    return 0.5 * x * (1 + np.tanh(t))
+
+def gelu_tanh_derivative(x):
+    t = np.sqrt(2/np.pi) * (x + 0.044715 * x**3)
+    tanh_t = np.tanh(t)
+    dt_dx = np.sqrt(2/np.pi) * (1 + 3 * 0.044715 * x**2)
+    return 0.5 * (1 + tanh_t) + 0.5 * x * (1 - tanh_t**2) * dt_dx
+
+
+```
 
 ---
 
