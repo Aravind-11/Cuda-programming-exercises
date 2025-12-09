@@ -4,7 +4,7 @@ I spent months implementing Transformers before I really understood what was hap
 
 It wasn't until I sat down and derived everything from scratch—pen, paper, and way too much coffee—that things clicked. And I realized: most people using Transformers every day have never seen this math. They trust PyTorch to handle it, which is fine for building models, but it leaves a gap. You can't debug what you don't understand. You can't design better architectures if you don't know why the current ones work.
 
-So I'm writing this for anyone who's ever wondered what's really going on under the hood. We're going to break down a Transformer block into its core components—residual connections, GELU activations, and scaled dot-product attention—and derive the backward pass for each one. No hand-waving, no "the library handles it." Just the math, step by step.
+So I'm writing this for anyone who's ever wondered what's really going on under the hood. We're going to break down a Transformer block into its core components—residual connections, GELU activations, and scaled dot-product attention—and derive the backward pass for each one. 
 
 If you're the kind of person who feels uneasy using tools you don't fully understand, this is for you.
 
