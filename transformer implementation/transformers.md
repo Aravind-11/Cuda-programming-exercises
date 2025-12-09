@@ -8,7 +8,6 @@ So I'm writing this for anyone who's ever wondered what's really going on under 
 
 If you're the kind of person who feels uneasy using tools you don't fully understand, this is for you.
 
----
 
 ## What we are computing
 
@@ -29,9 +28,11 @@ Output
 
 Lets go through each layer one by one. 
 
+---
+
 ## Backpropagation Through Residual Layers
 
----
+
 
 A standard residual block computes:
 
@@ -43,7 +44,6 @@ $$y = x + F(x, W)$$
 
 This additive structure is the key to why backprop behaves differently (and more stable) here.
 
----
 
 ### 2. Backprop Through a Residual Block
 
@@ -57,7 +57,6 @@ We want to compute:
 
 $$\frac{\partial L}{\partial x} \quad \text{and} \quad \frac{\partial L}{\partial W}$$
 
----
 
 #### 2.1 Gradient w.r.t. input $x$
 
@@ -87,7 +86,6 @@ $$\frac{\partial L}{\partial y} \rightarrow \text{back to } x$$
 
 This is the reason ResNets avoid vanishing gradients: the identity connection ensures a clean gradient flow.
 
----
 
 #### 2.2 Gradient w.r.t. the residual block weights $W$
 
@@ -97,7 +95,6 @@ $$\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y} \cdot \frac{\par
 
 Nothing special here: only the residual branch has learnable weights.
 
----
 
 ### 3. Why Residual Blocks Make Deep Nets Trainable
 
@@ -109,7 +106,6 @@ Even if $\frac{\partial F}{\partial x}$ becomes tiny in deep stacks, the identit
 
 This prevents gradients from collapsing to zero through very deep models.
 
----
 
 
 ```python
@@ -194,12 +190,10 @@ print("dx:\n", grads_manual['x'])
 
 ```
 
----
 
 
 ## Gaussian Error Linear Unit (GELU)
 
----
 
 The GELU activation is defined as:
 
@@ -209,7 +203,6 @@ Where:
 - $\Phi(x)$ is the standard normal cumulative distribution function (CDF)  
 - $\phi(x)$ is the standard normal probability density function (PDF)  
 
----
 
 #### 2.1 Forward Pass
 Exact GELU:
@@ -224,7 +217,6 @@ Thus:
 
 $$\text{GELU}(x) = \frac{x}{2}\left(1 + \text{erf}\left(\frac{x}{\sqrt{2}}\right)\right)$$
 
----
 
 #### 2.2 Backward Pass (Exact Derivative)
 Given:
@@ -243,7 +235,6 @@ Final exact gradient:
 
 $$\text{GELU}'(x) = \Phi(x) + x \phi(x)$$
 
----
 
 ### 3. Approximate GELU (Tanh Approximation)
 A commonly used approximation:
@@ -254,7 +245,6 @@ Define:
 
 $$t = \sqrt{\frac{2}{\pi}}(x + 0.044715 x^3)$$
 
----
 
 #### 3.1 Backward Pass (Approx Derivative)
 Derivative of tanh:
@@ -269,7 +259,6 @@ Final approximate GELU derivative:
 
 $$\text{GELU}'_{\text{approx}}(x) = 0.5(1 + \tanh(t)) + 0.5x(1 - \tanh^2(t)) \, t'$$
 
----
 
 ```python
 
@@ -330,7 +319,6 @@ dy_tanh  = gelu_tanh_derivative(x)
 
 ```
 
----
 
 ### 5. Notes
 - The tanh approximation is widely used in Transformers for speed.  
@@ -338,13 +326,11 @@ dy_tanh  = gelu_tanh_derivative(x)
 - Exact GELU requires computing the $\text{erf}$ function.
 
 
----
 
 ## Scaled Dot-Product Attention: Forward and Backward Pass
 
 This document explains the mathematical derivation and implementation of scaled dot-product attention, including forward pass, backward pass (backpropagation), and numerical gradient verification.
 
----
 
 ### 1. Overview
 
@@ -359,7 +345,6 @@ Where:
 - $T$: sequence length
 - $d_k$: dimension of queries/keys/values
 
----
 
 ### 2. Forward Pass
 
@@ -391,7 +376,6 @@ For supervised learning with target $Y \in \mathbb{R}^{T \times d_k}$:
 
 $$L = \frac{1}{2}\sum_{i,j}(O_{ij} - Y_{ij})^2$$
 
----
 
 ### 3. Backward Pass (Backpropagation)
 
@@ -656,5 +640,4 @@ if __name__ == "__main__":
     print("Sample numeric dWq[:2,:2]:\n", num_dWq[:2,:2])
 ```
 
----
 
