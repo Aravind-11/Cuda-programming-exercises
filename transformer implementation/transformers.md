@@ -10,7 +10,7 @@ If you're the kind of person who feels uneasy using tools you don't fully unders
 
 ---
 
-## What We're Actually Computing
+## What we are computing
 
 A standard Transformer encoder block looks like this:
 ```
