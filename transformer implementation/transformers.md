@@ -93,17 +93,8 @@ This prevents gradients from collapsing to zero through very deep models.
 
 ---
 
-## 5. Mathematical Summary
 
-| Component | Forward Pass | Backward Pass |
-|-----------|--------------|---------------|
-| Residual Block | $y = x + F(x, W)$ | $\frac{\partial L}{\partial x} = \frac{\partial L}{\partial y}(I + \frac{\partial F}{\partial x})$ |
-| Skip Path | $y_{\text{skip}} = x$ | $\frac{\partial L}{\partial x}_{\text{skip}} = \frac{\partial L}{\partial y}$ |
-| Residual Path | $y_{\text{res}} = F(x, W)$ | $\frac{\partial L}{\partial x}_{\text{res}} = \frac{\partial L}{\partial y} \cdot \frac{\partial F}{\partial x}$ |
-| Weight Gradient | — | $\frac{\partial L}{\partial W} = \frac{\partial L}{\partial y} \cdot \frac{\partial F}{\partial W}$ |
-
-
-```
+```python
 # Numpy example: forward + manual backward pass for a simple residual block
 # Model:
 #   z1 = W1 @ x + b1
