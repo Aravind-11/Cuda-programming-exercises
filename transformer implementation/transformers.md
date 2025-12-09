@@ -31,11 +31,7 @@ Lets go through each layer one by one.
 
 ## Backpropagation Through Residual Layers
 
-This document provides a clear, technically precise explanation of how backpropagation works in a residual layer, focusing on the math and intuition that matter in practice.
-
 ---
-
-### 1. What a Residual Layer Actually Computes
 
 A standard residual block computes:
 
@@ -112,15 +108,6 @@ $$\frac{\partial L}{\partial x} = \frac{\partial L}{\partial y} + \text{(somethi
 Even if $\frac{\partial F}{\partial x}$ becomes tiny in deep stacks, the identity term always remains 1.
 
 This prevents gradients from collapsing to zero through very deep models.
-
----
-
-### 4. Key Takeaways
-
-- **Skip connection provides gradient highway**: The term $\frac{\partial L}{\partial y}$ flows directly back without multiplication by layer weights
-- **Residual path adds refinement**: The term $\frac{\partial L}{\partial y} \cdot \frac{\partial F}{\partial x}$ provides additional gradient signal through the learned transformation
-- **Stability in depth**: Even if $\frac{\partial F}{\partial x} \approx 0$ in some layers, gradient flow is maintained via the identity path
-- **No vanishing gradient problem**: Unlike plain deep networks where gradients multiply through many layers, ResNets guarantee at least one direct path
 
 ---
 
@@ -211,11 +198,9 @@ print("dx:\n", grads_manual['x'])
 
 
 ## Gaussian Error Linear Unit (GELU)
-This explains the forward and backward passes for both the exact and approximate GELU activations, using GitHub-compatible LaTeX.
 
 ---
 
-### 1. Overview
 The GELU activation is defined as:
 
 $$\text{GELU}(x) = x \, \Phi(x)$$
@@ -226,9 +211,7 @@ Where:
 
 ---
 
-### 2. Exact GELU
-
-### 2.1 Forward Pass
+#### 2.1 Forward Pass
 Exact GELU:
 
 $$\text{GELU}(x) = x \, \Phi(x)$$
